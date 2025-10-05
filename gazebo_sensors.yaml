@@ -1,0 +1,380 @@
+sensor:
+  # Local temperature/humidity sensor
+  - platform: sht3xd
+    temperature:
+      name: "Gazebo Local Temperature"
+      id: local_temperature
+    humidity:
+      name: "Gazebo Local Humidity"
+      id: local_humidity
+    address: 0x44
+    update_interval: 10s
+
+  # PAGE 0 - Current conditions (Extérieur page)
+  # apparent_temperature from API
+  - platform: homeassistant
+    id: ha_current_feels_like
+    entity_id: sensor.gazebo_current_apparent_temperature_2
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "feels_like.val=%d", (int) lroundf(x));
+              id(nextion0).send_command(cmd);
+            }
+
+  # relative_humidity_2m from API
+  - platform: homeassistant
+    id: ha_current_humidity
+    entity_id: sensor.gazebo_current_humidity_2
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "rain.val=%d", (int) lroundf(x));
+              id(nextion0).send_command(cmd);
+            }
+
+  # PAGE 1 - Hourly forecast (Ressentie page) - Feels like temperatures
+  - platform: homeassistant
+    id: ha_hour_0_feels_like
+    entity_id: sensor.gazebo_hour_0_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t0.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_1_feels_like
+    entity_id: sensor.gazebo_hour_1_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t1.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_2_feels_like
+    entity_id: sensor.gazebo_hour_2_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t2.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_3_feels_like
+    entity_id: sensor.gazebo_hour_3_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t3.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_4_feels_like
+    entity_id: sensor.gazebo_hour_4_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t4.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_5_feels_like
+    entity_id: sensor.gazebo_hour_5_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t5.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_6_feels_like
+    entity_id: sensor.gazebo_hour_6_feels_like_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "t6.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  # PAGE 1 - Hourly forecast precipitation percentages
+  - platform: homeassistant
+    id: ha_hour_0_precipitation
+    entity_id: sensor.gazebo_hour_0_precipitation
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain0.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_1_precipitation
+    entity_id: sensor.gazebo_hour_1_precipitation_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain1.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_2_precipitation
+    entity_id: sensor.gazebo_hour_2_precipitation_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain2.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_3_precipitation
+    entity_id: sensor.gazebo_hour_3_precipitation_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain3.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_4_precipitation
+    entity_id: sensor.gazebo_hour_4_precipitation_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain4.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_5_precipitation
+    entity_id: sensor.gazebo_hour_5_precipitation_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain5.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_6_precipitation
+    entity_id: sensor.gazebo_hour_6_precipitation_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain6.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  # PAGE 2 - Hourly forecast actual temperatures (Actuelle page)
+  - platform: homeassistant
+    id: ha_hour_0_temp
+    entity_id: sensor.gazebo_hour_0_temperature
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp0.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_1_temp
+    entity_id: sensor.gazebo_hour_1_temperature_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp1.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_2_temp
+    entity_id: sensor.gazebo_hour_2_temperature_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp2.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_3_temp
+    entity_id: sensor.gazebo_hour_3_temperature_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp3.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_4_temp
+    entity_id: sensor.gazebo_hour_4_temperature_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp4.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_5_temp
+    entity_id: sensor.gazebo_hour_5_temperature_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp5.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_6_temp
+    entity_id: sensor.gazebo_hour_6_temperature_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "temp6.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  # PAGE 2 - Hourly forecast humidity percentages
+  - platform: homeassistant
+    id: ha_hour_0_humidity
+    entity_id: sensor.gazebo_hour_0_humidity
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid0.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_1_humidity
+    entity_id: sensor.gazebo_hour_1_humidity_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid1.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_2_humidity
+    entity_id: sensor.gazebo_hour_2_humidity_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid2.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_3_humidity
+    entity_id: sensor.gazebo_hour_3_humidity_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid3.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_4_humidity
+    entity_id: sensor.gazebo_hour_4_humidity_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid4.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_5_humidity
+    entity_id: sensor.gazebo_hour_5_humidity_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid5.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }
+
+  - platform: homeassistant
+    id: ha_hour_6_humidity
+    entity_id: sensor.gazebo_hour_6_humidity_2
+    internal: true
+    on_value:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "humid6.val=%d", (int) lroundf(x));
+            id(nextion0).send_command(cmd);
+          }

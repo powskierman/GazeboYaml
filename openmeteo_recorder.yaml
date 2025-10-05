@@ -1,0 +1,17 @@
+# OpenMeteo Weather Recorder Exclusions
+# This file contains only the recorder exclusion configuration
+
+exclude:
+  entities:
+      - sensor.gazebo_hour_1_feels_like_2
+      - sensor.gazebo_hour_2_feels_like_2
+      - sensor.gazebo_hour_3_feels_like_2
+      - sensor.gazebo_hour_4_feels_like_2
+      - sensor.gazebo_hour_5_feels_like_2
+      - sensor.gazebo_hour_6_feels_like_2
+      - sensor.gazebo_hour_1_precipitation_2
+      - sensor.gazebo_hour_2_precipitation_2
+      - sensor.gazebo_hour_3_precipitation_2
+      - sensor.gazebo_hour_4_precipitation_2
+      - sensor.gazebo_hour_5_precipitation_2
+      - sensor.gazebo_hour_6_precipitation_2

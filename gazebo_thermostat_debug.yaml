@@ -1,0 +1,126 @@
+esphome:
+  name: gazebo-thermostat
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+    version: recommended
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Static IP configuration
+  manual_ip:
+    static_ip: 192.168.0.242
+    gateway: 192.168.0.1
+    subnet: 255.255.255.0
+    dns1: 8.8.8.8
+    dns2: 8.8.4.4
+
+  ap:
+    ssid: "Gazebo Thermostat Fallback"
+    password: !secret wifi_password
+
+captive_portal:
+
+# Time for schedules and formatting
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: "America/New_York"
+    servers:
+      - "time.google.com"
+      - "time.nist.gov"
+      - "pool.ntp.org"
+    on_time_sync:
+      then:
+        - logger.log: "Time synchronized successfully!"
+        - lambda: |-
+            auto now = id(sntp_time).now();
+            ESP_LOGD("time_sync", "Time sync successful: %04d-%02d-%02d %02d:%02d:%02d", 
+                     now.year, now.month, now.day_of_month, 
+                     now.hour, now.minute, now.second);
+
+# Web server for debugging
+web_server:
+  port: 80
+
+# Home Assistant connection is automatic when API is enabled
+
+# Text sensors for debugging
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "Gazebo Thermostat IP"
+  
+  # Debug sensor to show current time on web interface
+  - platform: template
+    name: "ESP32 Current Time"
+    id: esp32_time_display
+    update_interval: 5s
+    lambda: |-
+      auto now = id(sntp_time).now();
+      if (now.is_valid()) {
+        char time_str[64];
+        snprintf(time_str, sizeof(time_str), "%04d-%02d-%02d %02d:%02d:%02d", 
+                 now.year, now.month, now.day_of_month, 
+                 now.hour, now.minute, now.second);
+        return std::string(time_str);
+      } else {
+        return std::string("Time not synchronized");
+      }
+
+# Test Home Assistant sensor connection
+sensor:
+  - platform: homeassistant
+    id: ha_current_feels_like
+    entity_id: sensor.gazebo_current_apparent_temperature
+    name: "Test HA Feels Like"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("test", "Received HA data: %f", x);
+            if (!isnan(x)) {
+              ESP_LOGI("test", "HA Feels Like temperature: %.1f°C", x);
+            }
+
+# Test buttons for debugging
+button:
+  - platform: template
+    name: "Test Time Sync"
+    on_press:
+      then:
+        - logger.log: "Testing time synchronization"
+        - lambda: |-
+            auto now = id(sntp_time).now();
+            if (now.is_valid()) {
+              ESP_LOGI("test", "Time test: %04d-%02d-%02d %02d:%02d:%02d", 
+                       now.year, now.month, now.day_of_month, 
+                       now.hour, now.minute, now.second);
+            } else {
+              ESP_LOGI("test", "Time not synchronized");
+            }
+
+  - platform: template
+    name: "Test HA Connection"
+    on_press:
+      then:
+        - logger.log: "Testing Home Assistant connection"
+        - lambda: |-
+            ESP_LOGI("test", "Testing HA connection...");
+            // This will trigger the sensor to check for data
+            id(ha_current_feels_like).update();

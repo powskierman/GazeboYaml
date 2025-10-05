@@ -1,0 +1,17 @@
+sensor:
+  # Test Home Assistant connection with just one sensor
+  - platform: homeassistant
+    id: ha_current_feels_like
+    entity_id: sensor.gazebo_current_apparent_temperature
+    name: "Test HA Feels Like"
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("test", "Received HA data: %f", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "feels_like.val=%d", (int) lroundf(x));
+              ESP_LOGI("test", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+

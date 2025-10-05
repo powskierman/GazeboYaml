@@ -1,0 +1,18 @@
+# Time configuration for NTP synchronization
+# Extracted from working gazebo thermostat configuration
+time:
+  - platform: sntp
+    id: sntp_time
+    timezone: "America/New_York"
+    servers:
+      - "time.google.com"
+      - "time.nist.gov"
+      - "pool.ntp.org"
+    on_time_sync:
+      then:
+        - logger.log: "Time synchronized successfully!"
+        - lambda: |-
+            auto now = id(sntp_time).now();
+            ESP_LOGD("time_sync", "Time sync successful: %04d-%02d-%02d %02d:%02d:%02d", 
+                     now.year, now.month, now.day_of_month, 
+                     now.hour, now.minute, now.second);

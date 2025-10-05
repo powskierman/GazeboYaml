@@ -1,0 +1,41 @@
+# Local temperature/humidity sensor
+- platform: sht3xd
+  temperature:
+    name: "Gazebo Local Temperature"
+    id: local_temperature
+  humidity:
+    name: "Gazebo Local Humidity"
+    id: local_humidity
+  address: 0x44
+  update_interval: 10s
+
+# PAGE 0 - Current conditions (Extérieur page)
+# apparent_temperature from API
+- platform: homeassistant
+  id: ha_current_feels_like
+  entity_id: sensor.gazebo_current_apparent_temperature
+  internal: true
+  on_value:
+    then:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "feels_like.val=%d", (int) lroundf(x));
+            ESP_LOGD("nextion", "Sending command: %s", cmd);
+            id(nextion0).send_command(cmd);
+          }
+
+# relative_humidity_2m from API
+- platform: homeassistant
+  id: ha_current_humidity
+  entity_id: sensor.gazebo_current_humidity
+  internal: true
+  on_value:
+    then:
+      - lambda: |-
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "rain.val=%d", (int) lroundf(x));
+            ESP_LOGD("nextion", "Sending command: %s", cmd);
+            id(nextion0).send_command(cmd);
+          }
