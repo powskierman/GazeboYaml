@@ -308,7 +308,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon0.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon0.pic=%d", icon_number);
               ESP_LOGI("ha_wx0", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
@@ -350,7 +350,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon1.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon1.pic=%d", icon_number);
               ESP_LOGI("ha_wx1", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
@@ -392,7 +392,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon2.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon2.pic=%d", icon_number);
               ESP_LOGI("ha_wx2", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
@@ -434,7 +434,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon3.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon3.pic=%d", icon_number);
               ESP_LOGI("ha_wx3", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
@@ -476,7 +476,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon4.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon4.pic=%d", icon_number);
               ESP_LOGI("ha_wx4", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
@@ -518,7 +518,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon5.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon5.pic=%d", icon_number);
               ESP_LOGI("ha_wx5", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
@@ -560,7 +560,7 @@ sensor:
                 default: icon_number = 26; break;
               }
               char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.wxIcon6.val=%d", icon_number);
+              snprintf(cmd, sizeof(cmd), "one.wxIcon6.pic=%d", icon_number);
               ESP_LOGI("ha_wx6", "Sending to Nextion: %s (code %d → icon %d)", cmd, weather_code, icon_number);
               id(nextion0).send_command(cmd);
             }
