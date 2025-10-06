@@ -94,7 +94,13 @@ web_server:
   port: 80
 
 sensor:
-  # Home Assistant sensors - ALL SET TO internal: true
+  # =============================================================================
+  # NEXTION DISPLAY SENSORS - ORGANIZED BY PAGE AND COLUMN
+  # =============================================================================
+  
+  # -----------------------------------------------------------------------------
+  # PAGE 0 (zero) - CURRENT OUTDOOR CONDITIONS
+  # -----------------------------------------------------------------------------
   - platform: homeassistant
     id: ha_current_temperature
     entity_id: sensor.gazebo_current_temperature
@@ -139,150 +145,15 @@ sensor:
               ESP_LOGI("ha_humidity", "Humidity value is NaN!");
             }
 
-  - platform: homeassistant
-    id: ha_hour_0_feels_like
-    entity_id: sensor.gazebo_hour_0_feels_like
-    name: "Hour 0 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl0", "Received H0 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl0.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl0", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_0_precip
-    entity_id: sensor.gazebo_hour_0_precipitation
-    name: "Hour 0 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h0_precip", "Received H0 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain0.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h0_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_1_precip
-    entity_id: sensor.gazebo_hour_1_precipitation
-    name: "Hour 1 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h1_precip", "Received H1 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain1.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h1_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_2_precip
-    entity_id: sensor.gazebo_hour_2_precipitation
-    name: "Hour 2 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h2_precip", "Received H2 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain2.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h2_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_3_precip
-    entity_id: sensor.gazebo_hour_3_precipitation
-    name: "Hour 3 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h3_precip", "Received H3 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain3.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h3_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_4_precip
-    entity_id: sensor.gazebo_hour_4_precipitation
-    name: "Hour 4 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h4_precip", "Received H4 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain4.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h4_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_5_precip
-    entity_id: sensor.gazebo_hour_5_precipitation
-    name: "Hour 5 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h5_precip", "Received H5 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain5.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h5_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_6_precip
-    entity_id: sensor.gazebo_hour_6_precipitation
-    name: "Hour 6 Precipitation"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_h6_precip", "Received H6 precip: %f%%", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.rain6.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_h6_precip", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
+  # -----------------------------------------------------------------------------
+  # PAGE 1 (one) - 7-HOUR FORECAST
+  # Column 1: Time (dt0-dt6) - handled by template sensors below
+  # Column 2: Weather Icons (wxIcon0-wxIcon6)
+  # Column 3: Feels Like Temperature (fl0-fl6)  
+  # Column 4: Precipitation (rain0-rain6)
+  # -----------------------------------------------------------------------------
+  
+  # PAGE 1 - COLUMN 2: WEATHER ICONS (wxIcon0-wxIcon6)
   - platform: homeassistant
     id: ha_hour_0_weather_code
     entity_id: sensor.gazebo_hour_0_weather_code
@@ -577,7 +448,269 @@ sensor:
               id(nextion0).send_command(cmd);
             }
 
-  # Page 2 Weather Icons and Temperature (using same data as page 1)
+  # PAGE 1 - COLUMN 3: FEELS LIKE TEMPERATURE (fl0-fl6)
+  - platform: homeassistant
+    id: ha_hour_0_feels_like
+    entity_id: sensor.gazebo_hour_0_feels_like
+    name: "Hour 0 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl0", "Received H0 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl0.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl0", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_1_feels_like
+    entity_id: sensor.gazebo_hour_1_feels_like
+    name: "Hour 1 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl1", "Received H1 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl1.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl1", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_2_feels_like
+    entity_id: sensor.gazebo_hour_2_feels_like
+    name: "Hour 2 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl2", "Received H2 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl2.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl2", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_3_feels_like
+    entity_id: sensor.gazebo_hour_3_feels_like
+    name: "Hour 3 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl3", "Received H3 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl3.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl3", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_4_feels_like
+    entity_id: sensor.gazebo_hour_4_feels_like
+    name: "Hour 4 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl4", "Received H4 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl4.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl4", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_5_feels_like
+    entity_id: sensor.gazebo_hour_5_feels_like
+    name: "Hour 5 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl5", "Received H5 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl5.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl5", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_6_feels_like
+    entity_id: sensor.gazebo_hour_6_feels_like
+    name: "Hour 6 Feels Like"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl6", "Received H6 feels like: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.fl6.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl6", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  # PAGE 1 - COLUMN 4: PRECIPITATION (rain0-rain6)
+  - platform: homeassistant
+    id: ha_hour_0_precip
+    entity_id: sensor.gazebo_hour_0_precipitation
+    name: "Hour 0 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h0_precip", "Received H0 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain0.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h0_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_1_precip
+    entity_id: sensor.gazebo_hour_1_precipitation
+    name: "Hour 1 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h1_precip", "Received H1 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain1.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h1_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_2_precip
+    entity_id: sensor.gazebo_hour_2_precipitation
+    name: "Hour 2 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h2_precip", "Received H2 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain2.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h2_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_3_precip
+    entity_id: sensor.gazebo_hour_3_precipitation
+    name: "Hour 3 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h3_precip", "Received H3 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain3.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h3_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_4_precip
+    entity_id: sensor.gazebo_hour_4_precipitation
+    name: "Hour 4 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h4_precip", "Received H4 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain4.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h4_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_5_precip
+    entity_id: sensor.gazebo_hour_5_precipitation
+    name: "Hour 5 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h5_precip", "Received H5 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain5.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h5_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_6_precip
+    entity_id: sensor.gazebo_hour_6_precipitation
+    name: "Hour 6 Precipitation"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_h6_precip", "Received H6 precip: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "one.rain6.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_h6_precip", "Sending to Nextion: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  # -----------------------------------------------------------------------------
+  # PAGE 2 (two) - EXTENDED FORECAST
+  # Column 1: Time (dt10-dt16) - handled by template sensors below
+  # Column 2: Weather Icons (wxIcon10-wxIcon16)
+  # Column 3: Temperature (temp0-temp6)
+  # Column 4: Humidity (humidity0-humidity6)
+  # -----------------------------------------------------------------------------
+  
+  # PAGE 2 - COLUMN 2: WEATHER ICONS (wxIcon10-wxIcon16)
   - platform: homeassistant
     id: ha_hour_0_weather_code_page2
     entity_id: sensor.gazebo_hour_0_weather_code
@@ -1128,115 +1261,7 @@ sensor:
               id(nextion0).send_command(cmd);
             }
 
-  - platform: homeassistant
-    id: ha_hour_1_feels_like
-    entity_id: sensor.gazebo_hour_1_feels_like
-    name: "Hour 1 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl1", "Received H1 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl1.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl1", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_2_feels_like
-    entity_id: sensor.gazebo_hour_2_feels_like
-    name: "Hour 2 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl2", "Received H2 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl2.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl2", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_3_feels_like
-    entity_id: sensor.gazebo_hour_3_feels_like
-    name: "Hour 3 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl3", "Received H3 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl3.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl3", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_4_feels_like
-    entity_id: sensor.gazebo_hour_4_feels_like
-    name: "Hour 4 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl4", "Received H4 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl4.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl4", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_5_feels_like
-    entity_id: sensor.gazebo_hour_5_feels_like
-    name: "Hour 5 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl5", "Received H5 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl5.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl5", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  - platform: homeassistant
-    id: ha_hour_6_feels_like
-    entity_id: sensor.gazebo_hour_6_feels_like
-    name: "Hour 6 Feels Like"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            ESP_LOGI("ha_fl6", "Received H6 feels like: %f°C", x);
-            if (!isnan(x)) {
-              char cmd[32];
-              snprintf(cmd, sizeof(cmd), "one.fl6.val=%d", (int) lroundf(x));
-              ESP_LOGI("ha_fl6", "Sending to Nextion: %s", cmd);
-              id(nextion0).send_command(cmd);
-            }
-
-  # Template sensors for time - ALREADY internal: true (correct)
+  # PAGE 1 - COLUMN 1: TIME (dt0-dt6) - Template sensors
   - platform: template
     id: ha_hour_0_time
     name: "Hour 0 Time"
@@ -1404,6 +1429,10 @@ sensor:
             id(nextion0).send_command(cmd2);
           }
 
+# =============================================================================
+# NEXTION DISPLAY SETUP
+# =============================================================================
+
 uart:
   id: uart_nextion
   tx_pin: GPIO17
@@ -1425,6 +1454,10 @@ display:
             id(nextion0).send_command("page 0");
             delay(1000);
             ESP_LOGD("nextion", "Display initialized on page 0");
+
+# =============================================================================
+# NEXTION NAVIGATION BUTTONS
+# =============================================================================
 
 binary_sensor:
   # - platform: nextion
@@ -1520,6 +1553,10 @@ binary_sensor:
   #           delay(200);
   #           id(nextion0).send_command("two.dt11.val=19");
   #           ESP_LOGI("nextion", "Sent time variables: dt0=15, dt1=16, dt2=17, dt10=18, dt11=19");
+
+# =============================================================================
+# TEXT SENSORS
+# =============================================================================
 
 text_sensor:
   - platform: wifi_info
