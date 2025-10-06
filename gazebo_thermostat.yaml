@@ -4,6 +4,18 @@ esphome:
   min_version: 2024.6.0
   platformio_options:
     board_build.flash_mode: dio
+  on_boot:
+    priority: -100
+    then:
+      - logger.log: "ESP32 booting up - initializing Nextion display"
+      - delay: 5s
+      - lambda: |-
+          ESP_LOGI("nextion", "=== ESP32 BOOTING UP ===");
+          ESP_LOGI("nextion", "Initializing Nextion display...");
+          
+          // Just initialize the display, don't set values to 0
+          // The sensor updates will handle setting the correct values
+          ESP_LOGI("nextion", "Nextion display initialization completed");
 
 esp32:
   board: esp32dev
@@ -57,8 +69,8 @@ time:
         - logger.log: "Time synchronized successfully!"
         - lambda: |-
             auto now = id(sntp_time).now();
-            ESP_LOGD("time_sync", "Time sync successful: %04d-%02d-%02d %02d:%02d:%02d",
-                     now.year, now.month, now.day_of_month,
+            ESP_LOGD("time_sync", "Time sync successful: %04d-%02d-%02d %02d:%02d:%02d", 
+                     now.year, now.month, now.day_of_month, 
                      now.hour, now.minute, now.second);
 
 output:
@@ -565,6 +577,557 @@ sensor:
               id(nextion0).send_command(cmd);
             }
 
+  # Page 2 Weather Icons and Temperature (using same data as page 1)
+  - platform: homeassistant
+    id: ha_hour_0_weather_code_page2
+    entity_id: sensor.gazebo_hour_0_weather_code
+    name: "Hour 0 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx0_p2", "Received H0 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon10.pic=%d", icon_number);
+              ESP_LOGI("ha_wx0_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_1_weather_code_page2
+    entity_id: sensor.gazebo_hour_1_weather_code
+    name: "Hour 1 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx1_p2", "Received H1 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon11.pic=%d", icon_number);
+              ESP_LOGI("ha_wx1_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_2_weather_code_page2
+    entity_id: sensor.gazebo_hour_2_weather_code
+    name: "Hour 2 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx2_p2", "Received H2 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon12.pic=%d", icon_number);
+              ESP_LOGI("ha_wx2_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  # Page 2 Temperature (Feels Like)
+  - platform: homeassistant
+    id: ha_hour_0_feels_like_page2
+    entity_id: sensor.gazebo_hour_0_feels_like
+    name: "Hour 0 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl0_p2", "Received H0 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp0.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl0_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_1_feels_like_page2
+    entity_id: sensor.gazebo_hour_1_feels_like
+    name: "Hour 1 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl1_p2", "Received H1 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp1.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl1_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_2_feels_like_page2
+    entity_id: sensor.gazebo_hour_2_feels_like
+    name: "Hour 2 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl2_p2", "Received H2 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp2.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl2_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  # Additional Page 2 Weather Icons (wxIcon13 to wxIcon22)
+  - platform: homeassistant
+    id: ha_hour_3_weather_code_page2
+    entity_id: sensor.gazebo_hour_3_weather_code
+    name: "Hour 3 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx3_p2", "Received H3 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon13.pic=%d", icon_number);
+              ESP_LOGI("ha_wx3_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_4_weather_code_page2
+    entity_id: sensor.gazebo_hour_4_weather_code
+    name: "Hour 4 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx4_p2", "Received H4 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon14.pic=%d", icon_number);
+              ESP_LOGI("ha_wx4_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_5_weather_code_page2
+    entity_id: sensor.gazebo_hour_5_weather_code
+    name: "Hour 5 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx5_p2", "Received H5 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon15.pic=%d", icon_number);
+              ESP_LOGI("ha_wx5_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_6_weather_code_page2
+    entity_id: sensor.gazebo_hour_6_weather_code
+    name: "Hour 6 Weather Code Page 2"
+    unit_of_measurement: ""
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_wx6_p2", "Received H6 weather code for page 2: %f", x);
+            if (!isnan(x)) {
+              int weather_code = (int) lroundf(x);
+              int icon_number = 26;
+              switch(weather_code) {
+                case 0: case 1: icon_number = 26; break;
+                case 2: icon_number = 22; break;
+                case 3: icon_number = 3; break;
+                case 45: case 48: icon_number = 3; break;
+                case 51: icon_number = 17; break;
+                case 53: case 55: icon_number = 16; break;
+                case 56: case 57: icon_number = 18; break;
+                case 61: icon_number = 17; break;
+                case 63: icon_number = 16; break;
+                case 65: icon_number = 15; break;
+                case 66: case 67: icon_number = 18; break;
+                case 71: icon_number = 19; break;
+                case 73: case 75: case 77: icon_number = 20; break;
+                case 80: icon_number = 17; break;
+                case 81: icon_number = 16; break;
+                case 82: icon_number = 15; break;
+                case 85: icon_number = 19; break;
+                case 86: icon_number = 20; break;
+                case 95: case 96: case 99: icon_number = 7; break;
+                default: icon_number = 26; break;
+              }
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.wxIcon16.pic=%d", icon_number);
+              ESP_LOGI("ha_wx6_p2", "Sending to Nextion page 2: %s (code %d → icon %d)", cmd, weather_code, icon_number);
+              id(nextion0).send_command(cmd);
+            }
+
+  # Additional Page 2 Temperature (temp3 to temp6)
+  - platform: homeassistant
+    id: ha_hour_3_feels_like_page2
+    entity_id: sensor.gazebo_hour_3_feels_like
+    name: "Hour 3 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl3_p2", "Received H3 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp3.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl3_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_4_feels_like_page2
+    entity_id: sensor.gazebo_hour_4_feels_like
+    name: "Hour 4 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl4_p2", "Received H4 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp4.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl4_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_5_feels_like_page2
+    entity_id: sensor.gazebo_hour_5_feels_like
+    name: "Hour 5 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl5_p2", "Received H5 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp5.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl5_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_6_feels_like_page2
+    entity_id: sensor.gazebo_hour_6_feels_like
+    name: "Hour 6 Feels Like Page 2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_fl6_p2", "Received H6 feels like for page 2: %f°C", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.temp6.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_fl6_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  # Page 2 Humidity (humidity0 to humidity6)
+  - platform: homeassistant
+    id: ha_hour_0_humidity_page2
+    entity_id: sensor.gazebo_hour_0_humidity
+    name: "Hour 0 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum0_p2", "Received H0 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity0.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum0_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_1_humidity_page2
+    entity_id: sensor.gazebo_hour_1_humidity
+    name: "Hour 1 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum1_p2", "Received H1 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity1.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum1_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_2_humidity_page2
+    entity_id: sensor.gazebo_hour_2_humidity
+    name: "Hour 2 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum2_p2", "Received H2 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity2.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum2_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_3_humidity_page2
+    entity_id: sensor.gazebo_hour_3_humidity
+    name: "Hour 3 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum3_p2", "Received H3 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity3.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum3_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_4_humidity_page2
+    entity_id: sensor.gazebo_hour_4_humidity
+    name: "Hour 4 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum4_p2", "Received H4 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity4.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum4_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_5_humidity_page2
+    entity_id: sensor.gazebo_hour_5_humidity
+    name: "Hour 5 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum5_p2", "Received H5 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity5.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum5_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
+  - platform: homeassistant
+    id: ha_hour_6_humidity_page2
+    entity_id: sensor.gazebo_hour_6_humidity
+    name: "Hour 6 Humidity Page 2"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("ha_hum6_p2", "Received H6 humidity for page 2: %f%%", x);
+            if (!isnan(x)) {
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "two.humidity6.val=%d", (int) lroundf(x));
+              ESP_LOGI("ha_hum6_p2", "Sending to Nextion page 2: %s", cmd);
+              id(nextion0).send_command(cmd);
+            }
+
   - platform: homeassistant
     id: ha_hour_1_feels_like
     entity_id: sensor.gazebo_hour_1_feels_like
@@ -864,24 +1427,24 @@ display:
             ESP_LOGD("nextion", "Display initialized on page 0");
 
 binary_sensor:
-  - platform: nextion
-    page_id: 0
-    component_id: 4
-    name: "Test Time Button"
-    id: test_time_button
-    on_press:
-      then:
-        - logger.log: "Test button pressed on Nextion"
-        - lambda: |-
-            ESP_LOGD("nextion", "=== NEXTION TEST BUTTON PRESSED ===");
-            auto now = id(sntp_time).now();
-            ESP_LOGD("nextion", "Current time: %02d:%02d", now.hour, now.minute);
-            int test_hour = (now.hour + 1) % 24;
-            ESP_LOGD("nextion", "Test hour (current + 1): %d", test_hour);
-            id(nextion0).send_command("one.dt0.val=77");
-            id(nextion0).send_command("two.dt10.val=66");
-            ESP_LOGD("nextion", "Sent test command: one.dt0.val=77");
-            ESP_LOGD("nextion", "Sent page 2 test command: two.dt10.val=66");
+  # - platform: nextion
+  #   page_id: 0
+  #   component_id: 4
+  #   name: "Test Time Button"
+  #   id: test_time_button
+  #   on_press:
+  #     then:
+  #       - logger.log: "Test button pressed on Nextion"
+  #       - lambda: |-
+  #           ESP_LOGD("nextion", "=== NEXTION TEST BUTTON PRESSED ===");
+  #           auto now = id(sntp_time).now();
+  #           ESP_LOGD("nextion", "Current time: %02d:%02d", now.hour, now.minute);
+  #           int test_hour = (now.hour + 1) % 24;
+  #           ESP_LOGD("nextion", "Test hour (current + 1): %d", test_hour);
+  #           id(nextion0).send_command("one.dt0.val=77");
+  #           id(nextion0).send_command("two.dt10.val=66");
+  #           ESP_LOGD("nextion", "Sent test command: one.dt0.val=77");
+  #           ESP_LOGD("nextion", "Sent page 2 test command: two.dt10.val=66");
 
   - platform: nextion
     page_id: 0
@@ -936,33 +1499,33 @@ binary_sensor:
         - logger.log: "Cycling back to Page 0 (Extérieur)"
         - lambda: id(nextion0).send_command("page 0");
 
-  - platform: template
-    name: "Test Nextion Time Variables"
-    on_press:
-      then:
-        - logger.log: "Testing Nextion time variables"
-        - lambda: |-
-            ESP_LOGI("nextion", "=== TESTING NEXTION TIME VARIABLES ===");
-            id(nextion0).send_command("page 1");
-            delay(500);
-            id(nextion0).send_command("one.dt0.val=15");
-            delay(200);
-            id(nextion0).send_command("one.dt1.val=16");
-            delay(200);
-            id(nextion0).send_command("one.dt2.val=17");
-            delay(200);
-            id(nextion0).send_command("page 2");
-            delay(500);
-            id(nextion0).send_command("two.dt10.val=18");
-            delay(200);
-            id(nextion0).send_command("two.dt11.val=19");
-            ESP_LOGI("nextion", "Sent time variables: dt0=15, dt1=16, dt2=17, dt10=18, dt11=19");
+  # - platform: template
+  #   name: "Test Nextion Time Variables"
+  #   on_press:
+  #     then:
+  #       - logger.log: "Testing Nextion time variables"
+  #       - lambda: |-
+  #           ESP_LOGI("nextion", "=== TESTING NEXTION TIME VARIABLES ===");
+  #           id(nextion0).send_command("page 1");
+  #           delay(500);
+  #           id(nextion0).send_command("one.dt0.val=15");
+  #           delay(200);
+  #           id(nextion0).send_command("one.dt1.val=16");
+  #           delay(200);
+  #           id(nextion0).send_command("one.dt2.val=17");
+  #           delay(200);
+  #           id(nextion0).send_command("page 2");
+  #           delay(500);
+  #           id(nextion0).send_command("two.dt10.val=18");
+  #           delay(200);
+  #           id(nextion0).send_command("two.dt11.val=19");
+  #           ESP_LOGI("nextion", "Sent time variables: dt0=15, dt1=16, dt2=17, dt10=18, dt11=19");
 
 text_sensor:
   - platform: wifi_info
     ip_address:
       name: "Gazebo Thermostat IP"
-
+  
   - platform: template
     name: "ESP32 Current Time"
     id: esp32_time_display
@@ -971,8 +1534,8 @@ text_sensor:
       auto now = id(sntp_time).now();
       if (now.is_valid()) {
         char time_str[64];
-        snprintf(time_str, sizeof(time_str), "%04d-%02d-%02d %02d:%02d:%02d",
-                 now.year, now.month, now.day_of_month,
+        snprintf(time_str, sizeof(time_str), "%04d-%02d-%02d %02d:%02d:%02d", 
+                 now.year, now.month, now.day_of_month, 
                  now.hour, now.minute, now.second);
         return std::string(time_str);
       } else {
