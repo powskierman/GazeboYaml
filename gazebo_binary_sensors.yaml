@@ -1,0 +1,68 @@
+# =============================================================================
+# GAZEBO THERMOSTAT - BINARY SENSORS (NAVIGATION)
+# =============================================================================
+# This file contains binary sensors for Nextion navigation buttons
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# NEXTION NAVIGATION BUTTONS
+# -----------------------------------------------------------------------------
+- platform: nextion
+  page_id: 0
+  component_id: 1
+  name: "Page 0 Next"
+  id: nx_page0_next
+  on_press:
+    then:
+      - logger.log: "Page 0 button pressed"
+      - lambda: |-
+          ESP_LOGI("nextion", "Page 0 button pressed");
+          id(nextion0).send_command("page 0");
+
+- platform: nextion
+  page_id: 1
+  component_id: 0
+  name: "Page 1 Back"
+  id: nx_page1_back
+  on_press:
+    then:
+      - logger.log: "Page 1 button pressed"
+      - lambda: |-
+          ESP_LOGI("nextion", "Page 1 button pressed");
+          id(nextion0).send_command("page 1");
+
+- platform: nextion
+  page_id: 1
+  component_id: 1
+  name: "Page 1 Next"
+  id: nx_page1_next
+  on_press:
+    then:
+      - logger.log: "Page 1 Next button pressed"
+      - lambda: |-
+          ESP_LOGI("nextion", "Page 1 Next button pressed");
+          id(nextion0).send_command("page 2");
+
+- platform: nextion
+  page_id: 2
+  component_id: 0
+  name: "Page 2 Back"
+  id: nx_page2_back
+  on_press:
+    then:
+      - logger.log: "Page 2 Back button pressed"
+      - lambda: |-
+          ESP_LOGI("nextion", "Page 2 Back button pressed");
+          id(nextion0).send_command("page 1");
+
+- platform: nextion
+  page_id: 2
+  component_id: 1
+  name: "Page 2 Next"
+  id: nx_page2_next
+  on_press:
+    then:
+      - logger.log: "Page 2 Next button pressed"
+      - lambda: |-
+          ESP_LOGI("nextion", "Page 2 Next button pressed");
+          id(nextion0).send_command("page 0");

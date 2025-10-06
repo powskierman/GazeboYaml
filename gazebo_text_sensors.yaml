@@ -1,0 +1,40 @@
+# =============================================================================
+# GAZEBO THERMOSTAT - TEXT SENSORS
+# =============================================================================
+# This file contains text sensors for WiFi info and time display
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TEXT SENSORS
+# -----------------------------------------------------------------------------
+- platform: wifi_info
+  ip_address:
+    name: "WiFi IP"
+    id: wifi_ip
+    on_value:
+      then:
+        - lambda: |-
+            ESP_LOGI("wifi", "WiFi IP: %s", x.c_str());
+            char cmd[64];
+            snprintf(cmd, sizeof(cmd), "zero.ip.txt=\"%s\"", x.c_str());
+            id(nextion0).send_command(cmd);
+            ESP_LOGI("wifi", "Sent IP to Nextion: %s", cmd);
+
+- platform: template
+  id: current_time_text
+  name: "Current Time Text"
+  internal: true
+  update_interval: 60s
+  lambda: |-
+    auto now = id(sntp_time).now();
+    char time_str[32];
+    snprintf(time_str, sizeof(time_str), "%02d:%02d", now.hour, now.minute);
+    ESP_LOGD("time", "Current time text: %s", time_str);
+    return std::string(time_str);
+  on_value:
+    - lambda: |-
+        ESP_LOGD("time", "Time text updated: %s", x.c_str());
+        char cmd[64];
+        snprintf(cmd, sizeof(cmd), "zero.time.txt=\"%s\"", x.c_str());
+        id(nextion0).send_command(cmd);
+        ESP_LOGD("time", "Sent time to Nextion: %s", cmd);

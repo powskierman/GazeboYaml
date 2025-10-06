@@ -1,0 +1,54 @@
+# =============================================================================
+# GAZEBO THERMOSTAT - PAGE 0 (CURRENT OUTDOOR CONDITIONS)
+# =============================================================================
+# This file contains sensors for Page 0 of the Nextion display:
+# - Current temperature (feels_like)
+# - Current humidity (rain)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# PAGE 0 (zero) - CURRENT OUTDOOR CONDITIONS
+# -----------------------------------------------------------------------------
+- platform: homeassistant
+  id: ha_current_temperature
+  entity_id: sensor.gazebo_current_temperature
+  name: "Gazebo Current Temperature"
+  unit_of_measurement: "°C"
+  accuracy_decimals: 1
+  internal: true
+  on_value:
+    then:
+      - lambda: |-
+          ESP_LOGI("ha_temp", "=== TEMPERATURE CALLBACK TRIGGERED ===");
+          ESP_LOGI("ha_temp", "Received temperature: %f°C", x);
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "zero.feels_like.val=%d", (int) lroundf(x));
+            ESP_LOGI("ha_temp", "Sending to Nextion: %s", cmd);
+            id(nextion0).send_command(cmd);
+            ESP_LOGI("ha_temp", "Command sent successfully");
+          } else {
+            ESP_LOGI("ha_temp", "Temperature value is NaN!");
+          }
+
+- platform: homeassistant
+  id: ha_current_humidity
+  entity_id: sensor.gazebo_current_humidity
+  name: "Gazebo Humidity"
+  unit_of_measurement: "%"
+  accuracy_decimals: 0
+  internal: true
+  on_value:
+    then:
+      - lambda: |-
+          ESP_LOGI("ha_humidity", "=== HUMIDITY CALLBACK TRIGGERED ===");
+          ESP_LOGI("ha_humidity", "Received humidity: %f%%", x);
+          if (!isnan(x)) {
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "zero.rain.val=%d", (int) lroundf(x));
+            ESP_LOGI("ha_humidity", "Sending to Nextion page 0: %s", cmd);
+            id(nextion0).send_command(cmd);
+            ESP_LOGI("ha_humidity", "Humidity command sent successfully");
+          } else {
+            ESP_LOGI("ha_humidity", "Humidity value is NaN!");
+          }
