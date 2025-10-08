@@ -1,30 +1,18 @@
 # =============================================================================
-# GAZEBO THERMOSTAT - MODULAR CONFIGURATION
+# GAZEBO THERMOSTAT - MAIN MODULAR CONFIGURATION
 # =============================================================================
-# This is the main configuration file that includes all modular components.
-# The configuration has been separated into logical files for better maintainability:
-#
-# - gazebo_base.yaml: Core ESPHome settings, WiFi, time, hardware setup
-# - gazebo_page0.yaml: Page 0 sensors (current outdoor conditions)
-# - gazebo_page1.yaml: Page 1 sensors (7-hour forecast)
-# - gazebo_page2.yaml: Page 2 sensors (extended forecast)
-# - gazebo_navigation.yaml: Nextion navigation buttons and text sensors
-#
-# To use this modular configuration, ensure all referenced files are in the same directory.
+# This is the main configuration file that includes all modular components
 # =============================================================================
 
-# Include the base configuration
-<<: !include gazebo_base.yaml
+# =============================================================================
+# PACKAGES - INCLUDE ALL MODULAR COMPONENTS
+# =============================================================================
 
-# Include page-specific sensor configurations
-sensor:
-  <<: !include gazebo_page0.yaml
-  <<: !include gazebo_page1.yaml
-  <<: !include gazebo_page2.yaml
-
-# Include navigation and text sensors
-binary_sensor:
-  <<: !include gazebo_binary_sensors.yaml
-
-text_sensor:
-  <<: !include gazebo_text_sensors.yaml
+packages:
+  base: !include gazebo_base.yaml
+  page0: !include gazebo_page0.yaml
+  page1: !include gazebo_page1.yaml
+  page2: !include gazebo_page2.yaml
+  page2_dates: !include gazebo_page2_dates.yaml
+  navigation: !include gazebo_navigation.yaml
+  text_sensors: !include gazebo_text_sensors.yaml

@@ -15,7 +15,8 @@
 # Column 3: Feels Like Temperature (fl0-fl6)  
 # Column 4: Precipitation (rain0-rain6)
 # -----------------------------------------------------------------------------
-  
+
+sensor:
   # PAGE 1 - COLUMN 2: WEATHER ICONS (wxIcon0-wxIcon6)
 - platform: homeassistant
   id: ha_hour_0_weather_code

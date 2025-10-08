@@ -3,12 +3,13 @@
 # =============================================================================
 # This file contains navigation controls for the Nextion display:
 # - Page navigation buttons
-# - Text sensors for WiFi info and time display
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # NEXTION NAVIGATION BUTTONS
 # -----------------------------------------------------------------------------
+
+binary_sensor:
 - platform: nextion
   page_id: 0
   component_id: 1
@@ -18,8 +19,8 @@
     then:
     - logger.log: "Page 0 button pressed"
     - lambda: |-
-      ESP_LOGI("nextion", "Page 0 button pressed");
-      id(nextion0).send_command("page 0");
+        ESP_LOGI("nextion", "Page 0 button pressed");
+        id(nextion0).send_command("page 0");
 
 - platform: nextion
   page_id: 1
@@ -30,8 +31,8 @@
     then:
     - logger.log: "Page 1 button pressed"
     - lambda: |-
-      ESP_LOGI("nextion", "Page 1 button pressed");
-      id(nextion0).send_command("page 1");
+        ESP_LOGI("nextion", "Page 1 button pressed");
+        id(nextion0).send_command("page 1");
 
 - platform: nextion
   page_id: 1
@@ -42,8 +43,8 @@
     then:
     - logger.log: "Page 1 Next button pressed"
     - lambda: |-
-      ESP_LOGI("nextion", "Page 1 Next button pressed");
-      id(nextion0).send_command("page 2");
+        ESP_LOGI("nextion", "Page 1 Next button pressed");
+        id(nextion0).send_command("page 2");
 
 - platform: nextion
   page_id: 2
@@ -54,8 +55,8 @@
     then:
     - logger.log: "Page 2 Back button pressed"
     - lambda: |-
-      ESP_LOGI("nextion", "Page 2 Back button pressed");
-      id(nextion0).send_command("page 1");
+        ESP_LOGI("nextion", "Page 2 Back button pressed");
+        id(nextion0).send_command("page 1");
 
 - platform: nextion
   page_id: 2
@@ -66,40 +67,5 @@
     then:
     - logger.log: "Page 2 Next button pressed"
     - lambda: |-
-      ESP_LOGI("nextion", "Page 2 Next button pressed");
-      id(nextion0).send_command("page 0");
-
-# -----------------------------------------------------------------------------
-# TEXT SENSORS
-# -----------------------------------------------------------------------------
-- platform: wifi_info
-  ip_address:
-    name: "WiFi IP"
-    id: wifi_ip
-    on_value:
-    then:
-      - lambda: |-
-        ESP_LOGI("wifi", "WiFi IP: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "zero.ip.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGI("wifi", "Sent IP to Nextion: %s", cmd);
-
-- platform: template
-  id: current_time_text
-  name: "Current Time Text"
-  internal: true
-  update_interval: 60s
-  lambda: |-
-    auto now = id(sntp_time).now();
-    char time_str[32];
-    snprintf(time_str, sizeof(time_str), "%02d:%02d", now.hour, now.minute);
-    ESP_LOGD("time", "Current time text: %s", time_str);
-    return std::string(time_str);
-  on_value:
-    - lambda: |-
-      ESP_LOGD("time", "Time text updated: %s", x.c_str());
-      char cmd[64];
-      snprintf(cmd, sizeof(cmd), "zero.time.txt=\"%s\"", x.c_str());
-      id(nextion0).send_command(cmd);
-      ESP_LOGD("time", "Sent time to Nextion: %s", cmd);
+        ESP_LOGI("nextion", "Page 2 Next button pressed");
+        id(nextion0).send_command("page 0");
