@@ -40,3 +40,19 @@ text_sensor:
         snprintf(cmd, sizeof(cmd), "zero.time.txt=\"%s\"", x.c_str());
         id(nextion0).send_command(cmd);
         ESP_LOGD("time", "Sent time to Nextion: %s", cmd);
+
+# Web Interface Date/Time Display
+- platform: template
+  id: current_date_time
+  name: "Current Date & Time"
+  update_interval: 10s
+  lambda: |-
+    auto now = id(sntp_time).now();
+    if (!now.is_valid()) {
+      return std::string("Time not synced");
+    }
+    char datetime_str[64];
+    snprintf(datetime_str, sizeof(datetime_str), "%04d-%02d-%02d %02d:%02d:%02d", 
+             now.year, now.month, now.day_of_month, 
+             now.hour, now.minute, now.second);
+    return std::string(datetime_str);

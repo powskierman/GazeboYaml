@@ -5,151 +5,208 @@
 # =============================================================================
 
 text_sensor:
-  # PAGE 2 - COLUMN 1: DATE (dt20-dt26) - Text template sensors
+  # PAGE 2 - COLUMN 1: DATE (dt10-dt16) - Text template sensors
 - platform: template
   id: ha_day_0_date
-  name: "Day 0 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 0 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
+    // Day 0 = Tomorrow (today + 1 day)
     time.increment_day();
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 0 date: %s", date_str);
+    ESP_LOGI("date", "Day 0 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 0 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt20.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 0 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          time.increment_day();
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt10.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
 - platform: template
   id: ha_day_1_date
-  name: "Day 1 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 1 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
     for(int i = 0; i < 2; i++) { time.increment_day(); }
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 1 date: %s", date_str);
+    ESP_LOGI("date", "Day 1 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 1 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt21.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 1 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          for(int i = 0; i < 2; i++) { time.increment_day(); }
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt11.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
 - platform: template
   id: ha_day_2_date
-  name: "Day 2 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 2 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
     for(int i = 0; i < 3; i++) { time.increment_day(); }
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 2 date: %s", date_str);
+    ESP_LOGI("date", "Day 2 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 2 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt22.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 2 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          for(int i = 0; i < 3; i++) { time.increment_day(); }
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt12.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
 - platform: template
   id: ha_day_3_date
-  name: "Day 3 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 3 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
     for(int i = 0; i < 4; i++) { time.increment_day(); }
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 3 date: %s", date_str);
+    ESP_LOGI("date", "Day 3 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 3 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt23.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 3 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          for(int i = 0; i < 4; i++) { time.increment_day(); }
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt13.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
 - platform: template
   id: ha_day_4_date
-  name: "Day 4 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 4 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
     for(int i = 0; i < 5; i++) { time.increment_day(); }
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 4 date: %s", date_str);
+    ESP_LOGI("date", "Day 4 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 4 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt24.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 4 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          for(int i = 0; i < 5; i++) { time.increment_day(); }
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt14.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
 - platform: template
   id: ha_day_5_date
-  name: "Day 5 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 5 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
     for(int i = 0; i < 6; i++) { time.increment_day(); }
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 5 date: %s", date_str);
+    ESP_LOGI("date", "Day 5 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 5 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt25.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 5 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          for(int i = 0; i < 6; i++) { time.increment_day(); }
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt15.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
 - platform: template
   id: ha_day_6_date
-  name: "Day 6 Date"
-  internal: true
-  update_interval: 3600s
+  name: "Forecast Day 6 Date"
+  internal: false
+  update_interval: 60s
   lambda: |-
     auto time = id(sntp_time).now();
+    if (!time.is_valid()) {
+      return std::string("--/--");
+    }
     for(int i = 0; i < 7; i++) { time.increment_day(); }
     time.recalc_timestamp_utc(false);
     char date_str[6];
     snprintf(date_str, sizeof(date_str), "%02d/%02d", time.day_of_month, time.month);
-    ESP_LOGD("nextion", "Day 6 date: %s", date_str);
+    ESP_LOGI("date", "Day 6 date: %s", date_str);
     return std::string(date_str);
   on_value:
     - lambda: |-
-        ESP_LOGD("nextion", "Day 6 date updated: %s", x.c_str());
-        char cmd[64];
-        snprintf(cmd, sizeof(cmd), "two.dt26.txt=\"%s\"", x.c_str());
-        id(nextion0).send_command(cmd);
-        ESP_LOGD("nextion", "Sent date to Nextion: %s", cmd);
+        ESP_LOGI("date", "Day 6 date updated: %s", x.c_str());
+        auto time = id(sntp_time).now();
+        if (time.is_valid()) {
+          for(int i = 0; i < 7; i++) { time.increment_day(); }
+          time.recalc_timestamp_utc(false);
+          char cmd[64];
+          snprintf(cmd, sizeof(cmd), "two.dt16.val=%d", time.day_of_month);
+          id(nextion0).send_command(cmd);
+          ESP_LOGI("date", "Sent date to Nextion: %s", cmd);
+        }
 
