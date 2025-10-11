@@ -16,17 +16,100 @@ esphome:
   platformio_options:
     board_build.flash_mode: dio
   on_boot:
-    priority: -100
-    then:
-      - logger.log: "ESP32 booting up - initializing Nextion display"
-      - delay: 5s
-      - lambda: |-
-          ESP_LOGI("nextion", "=== ESP32 BOOTING UP ===");
-          ESP_LOGI("nextion", "Initializing Nextion display...");
-          
-          // Just initialize the display, don't set values to 0
-          // The sensor updates will handle setting the correct values
-          ESP_LOGI("nextion", "Nextion display initialization completed");
+    # First boot sequence - initialize display
+    - priority: -100
+      then:
+        - logger.log: "ESP32 booting up - initializing Nextion display"
+        - delay: 5s
+        - lambda: |-
+            ESP_LOGI("nextion", "=== ESP32 BOOTING UP ===");
+            ESP_LOGI("nextion", "Initializing Nextion display...");
+            
+            // Just initialize the display, don't set values to 0
+            // The sensor updates will handle setting the correct values
+            ESP_LOGI("nextion", "Nextion display initialization completed");
+    # Second boot sequence - wake display and force ALL sensors refresh after 60 seconds
+    - priority: -200
+      then:
+        - delay: 60s
+        - logger.log: "Waking Nextion display and forcing ALL sensors refresh..."
+        - lambda: |-
+            ESP_LOGI("nextion", "Waking up Nextion display...");
+            id(nextion0).send_command("wake=1");
+            delay(1000);
+            ESP_LOGI("nextion", "Display awakened, refreshing ALL sensors...");
+            
+            // Force refresh all Home Assistant sensors by triggering their on_value callbacks
+            // This simulates receiving new data from Home Assistant
+            
+            // PAGE 0 - Current conditions
+            ESP_LOGI("nextion", "Refreshing Page 0 sensors...");
+            id(ha_current_temperature).publish_state(id(ha_current_temperature).state);
+            id(ha_daily_precipitation).publish_state(id(ha_daily_precipitation).state);
+            
+            // PAGE 1 - Hourly forecast (7 hours)
+            ESP_LOGI("nextion", "Refreshing Page 1 sensors...");
+            id(ha_hour_0_weather_code).publish_state(id(ha_hour_0_weather_code).state);
+            id(ha_hour_1_weather_code).publish_state(id(ha_hour_1_weather_code).state);
+            id(ha_hour_2_weather_code).publish_state(id(ha_hour_2_weather_code).state);
+            id(ha_hour_3_weather_code).publish_state(id(ha_hour_3_weather_code).state);
+            id(ha_hour_4_weather_code).publish_state(id(ha_hour_4_weather_code).state);
+            id(ha_hour_5_weather_code).publish_state(id(ha_hour_5_weather_code).state);
+            id(ha_hour_6_weather_code).publish_state(id(ha_hour_6_weather_code).state);
+            id(ha_hour_0_feels_like).publish_state(id(ha_hour_0_feels_like).state);
+            id(ha_hour_1_feels_like).publish_state(id(ha_hour_1_feels_like).state);
+            id(ha_hour_2_feels_like).publish_state(id(ha_hour_2_feels_like).state);
+            id(ha_hour_3_feels_like).publish_state(id(ha_hour_3_feels_like).state);
+            id(ha_hour_4_feels_like).publish_state(id(ha_hour_4_feels_like).state);
+            id(ha_hour_5_feels_like).publish_state(id(ha_hour_5_feels_like).state);
+            id(ha_hour_6_feels_like).publish_state(id(ha_hour_6_feels_like).state);
+            id(ha_hour_0_precip).publish_state(id(ha_hour_0_precip).state);
+            id(ha_hour_1_precip).publish_state(id(ha_hour_1_precip).state);
+            id(ha_hour_2_precip).publish_state(id(ha_hour_2_precip).state);
+            id(ha_hour_3_precip).publish_state(id(ha_hour_3_precip).state);
+            id(ha_hour_4_precip).publish_state(id(ha_hour_4_precip).state);
+            id(ha_hour_5_precip).publish_state(id(ha_hour_5_precip).state);
+            id(ha_hour_6_precip).publish_state(id(ha_hour_6_precip).state);
+            id(ha_hour_0_time).publish_state(id(ha_hour_0_time).state);
+            id(ha_hour_1_time).publish_state(id(ha_hour_1_time).state);
+            id(ha_hour_2_time).publish_state(id(ha_hour_2_time).state);
+            id(ha_hour_3_time).publish_state(id(ha_hour_3_time).state);
+            id(ha_hour_4_time).publish_state(id(ha_hour_4_time).state);
+            id(ha_hour_5_time).publish_state(id(ha_hour_5_time).state);
+            id(ha_hour_6_time).publish_state(id(ha_hour_6_time).state);
+            
+            // PAGE 2 - Daily forecast (7 days)
+            ESP_LOGI("nextion", "Refreshing Page 2 sensors...");
+            id(ha_day_0_weather_code).publish_state(id(ha_day_0_weather_code).state);
+            id(ha_day_1_weather_code).publish_state(id(ha_day_1_weather_code).state);
+            id(ha_day_2_weather_code).publish_state(id(ha_day_2_weather_code).state);
+            id(ha_day_3_weather_code).publish_state(id(ha_day_3_weather_code).state);
+            id(ha_day_4_weather_code).publish_state(id(ha_day_4_weather_code).state);
+            id(ha_day_5_weather_code).publish_state(id(ha_day_5_weather_code).state);
+            id(ha_day_6_weather_code).publish_state(id(ha_day_6_weather_code).state);
+            id(ha_day_0_temp_max).publish_state(id(ha_day_0_temp_max).state);
+            id(ha_day_1_temp_max).publish_state(id(ha_day_1_temp_max).state);
+            id(ha_day_2_temp_max).publish_state(id(ha_day_2_temp_max).state);
+            id(ha_day_3_temp_max).publish_state(id(ha_day_3_temp_max).state);
+            id(ha_day_4_temp_max).publish_state(id(ha_day_4_temp_max).state);
+            id(ha_day_5_temp_max).publish_state(id(ha_day_5_temp_max).state);
+            id(ha_day_6_temp_max).publish_state(id(ha_day_6_temp_max).state);
+            id(ha_day_0_precip_prob).publish_state(id(ha_day_0_precip_prob).state);
+            id(ha_day_1_precip_prob).publish_state(id(ha_day_1_precip_prob).state);
+            id(ha_day_2_precip_prob).publish_state(id(ha_day_2_precip_prob).state);
+            id(ha_day_3_precip_prob).publish_state(id(ha_day_3_precip_prob).state);
+            id(ha_day_4_precip_prob).publish_state(id(ha_day_4_precip_prob).state);
+            id(ha_day_5_precip_prob).publish_state(id(ha_day_5_precip_prob).state);
+            id(ha_day_6_precip_prob).publish_state(id(ha_day_6_precip_prob).state);
+            id(ha_day_0_date).publish_state(id(ha_day_0_date).state);
+            id(ha_day_1_date).publish_state(id(ha_day_1_date).state);
+            id(ha_day_2_date).publish_state(id(ha_day_2_date).state);
+            id(ha_day_3_date).publish_state(id(ha_day_3_date).state);
+            id(ha_day_4_date).publish_state(id(ha_day_4_date).state);
+            id(ha_day_5_date).publish_state(id(ha_day_5_date).state);
+            id(ha_day_6_date).publish_state(id(ha_day_6_date).state);
+            
+            ESP_LOGI("nextion", "ALL sensors refresh completed");
 
 esp32:
   board: esp32dev
