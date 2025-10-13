@@ -14,5 +14,6 @@ packages:
   page1: !include gazebo_page1.yaml
   page2: !include gazebo_page2.yaml
   page2_dates: !include gazebo_page2_dates.yaml
+  page3_thermostat: !include gazebo_page3_thermostat.yaml
   navigation: !include gazebo_navigation.yaml
   text_sensors: !include gazebo_text_sensors.yaml

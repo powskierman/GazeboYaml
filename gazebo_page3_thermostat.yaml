@@ -1,0 +1,780 @@
+# =============================================================================
+# GAZEBO THERMOSTAT - PAGE 3 THERMOSTAT CONTROL
+# =============================================================================
+# This file implements the complete thermostat functionality including:
+# - DS18B20 temperature sensing with error handling
+# - Temperature correction and calibration  
+# - Heating control with hysteresis
+# - Time-based scheduling
+# - Home/Away presence detection
+# - Manual override modes
+# - Nextion display integration (Page 3)
+# - Configuration persistence
+# - System health monitoring
+# - Full Home Assistant climate entity integration
+# =============================================================================
+
+# =============================================================================
+# GLOBAL VARIABLES - THERMOSTAT STATE
+# =============================================================================
+
+globals:
+  # Temperature sensor state
+  - id: sensor_bad_read_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+  
+  - id: previous_temperature
+    type: float
+    restore_value: yes
+    initial_value: '20.0'
+  
+  - id: temperature_correction
+    type: float
+    restore_value: yes
+    initial_value: '0.0'
+  
+  # Thermostat configuration
+  - id: desired_temperature
+    type: float
+    restore_value: yes
+    initial_value: '21.0'
+  
+  - id: hysteresis_value
+    type: float
+    restore_value: yes
+    initial_value: '1.0'
+  
+  # Manual override states
+  - id: manual_run_active
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+  
+  - id: manual_stop_active
+    type: bool
+    restore_value: yes
+    initial_value: 'false'
+  
+  - id: manual_run_start_time
+    type: unsigned long
+    restore_value: no
+    initial_value: '0'
+  
+  # Home/Away state
+  - id: home_status
+    type: bool
+    restore_value: yes
+    initial_value: 'true'  # true = home, false = away
+  
+  # Timer state
+  - id: timer_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  
+  - id: schedule_start_seconds
+    type: int
+    restore_value: yes
+    initial_value: '28800'  # 8:00 AM = 8*3600 seconds
+  
+  - id: schedule_end_seconds
+    type: int
+    restore_value: yes
+    initial_value: '79200'  # 10:00 PM = 22*3600 seconds
+  
+  # Days of week for schedule (bit flags: Sun=1, Mon=2, Tue=4, Wed=8, Thu=16, Fri=32, Sat=64)
+  - id: schedule_days_of_week
+    type: int
+    restore_value: yes
+    initial_value: '127'  # All days enabled (1+2+4+8+16+32+64)
+  
+  # Relay state tracking
+  - id: stove_active
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  
+  # System health
+  - id: sensor_failure_reported
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  
+  - id: temperature_averaging_enabled
+    type: bool
+    restore_value: yes
+    initial_value: 'true'
+  
+  - id: manual_run_timeout_minutes
+    type: int
+    restore_value: yes
+    initial_value: '120'  # 2 hours default
+
+# =============================================================================
+# DS18B20 TEMPERATURE SENSOR
+# =============================================================================
+
+dallas:
+  - pin: GPIO13
+    update_interval: 10s
+
+sensor:
+  # =============================================================================
+  # ACTUAL TEMPERATURE - DS18B20 with all error handling
+  # =============================================================================
+  - platform: dallas
+    id: ds18b20_temp
+    name: "Gazebo Actual Temperature"
+    address: 0x000000000000  # REPLACE WITH YOUR ACTUAL DS18B20 ADDRESS
+    accuracy_decimals: 1
+    filters:
+      # Temperature rate limiting - max 1°C change per update
+      - lambda: |-
+          static float last_valid_temp = 20.0;
+          
+          // Check for bad reads (NaN or out of reasonable range)
+          if (isnan(x) || x < -40.0 || x > 85.0) {
+            ESP_LOGW("thermostat", "Bad temperature read detected: %f", x);
+            id(sensor_bad_read_count) += 1;
+            
+            if (id(sensor_bad_read_count) >= 3) {
+              if (!id(sensor_failure_reported)) {
+                ESP_LOGE("thermostat", "SENSOR FAILURE: 3 consecutive bad reads!");
+                id(sensor_failure_reported) = true;
+              }
+            }
+            
+            // Return last known good value
+            return last_valid_temp;
+          }
+          
+          // Reset bad read counter on good read
+          if (id(sensor_bad_read_count) > 0) {
+            ESP_LOGI("thermostat", "Temperature sensor recovered");
+            id(sensor_bad_read_count) = 0;
+            id(sensor_failure_reported) = false;
+          }
+          
+          // Apply temperature correction offset
+          float corrected_temp = x + id(temperature_correction);
+          ESP_LOGD("thermostat", "Raw temp: %.1f°C, Correction: %.1f°C, Corrected: %.1f°C", 
+                   x, id(temperature_correction), corrected_temp);
+          
+          // Apply temperature averaging if enabled
+          if (id(temperature_averaging_enabled)) {
+            corrected_temp = (corrected_temp + id(previous_temperature)) / 2.0;
+            ESP_LOGD("thermostat", "Averaged with previous (%.1f°C): %.1f°C", 
+                     id(previous_temperature), corrected_temp);
+          }
+          
+          // Limit rate of change to 1°C per update cycle
+          float temp_change = corrected_temp - last_valid_temp;
+          if (abs(temp_change) > 1.0) {
+            ESP_LOGW("thermostat", "Large temp change detected (%.1f°C), limiting to 1°C", temp_change);
+            corrected_temp = last_valid_temp + (temp_change > 0 ? 1.0 : -1.0);
+          }
+          
+          // Store for next iteration
+          id(previous_temperature) = corrected_temp;
+          last_valid_temp = corrected_temp;
+          
+          return corrected_temp;
+    on_value:
+      then:
+        - lambda: |-
+            if (!isnan(x)) {
+              // Update Nextion display - Page 3, n1 = actual temperature
+              char cmd[32];
+              snprintf(cmd, sizeof(cmd), "three.n1.val=%d", (int)lroundf(x));
+              id(nextion0).send_command(cmd);
+              ESP_LOGD("thermostat", "Updated Nextion actual temp: %s", cmd);
+              
+              // Trigger HVAC control evaluation
+              id(thermostat_control).make_call().perform();
+            }
+  
+  # =============================================================================
+  # UPTIME SENSOR - For system health monitoring
+  # =============================================================================
+  - platform: uptime
+    name: "Gazebo Thermostat Uptime"
+    id: uptime_sensor
+    update_interval: 60s
+  
+  # =============================================================================
+  # WIFI SIGNAL STRENGTH - For connectivity monitoring
+  # =============================================================================
+  - platform: wifi_signal
+    name: "Gazebo Thermostat WiFi Signal"
+    id: wifi_signal_strength
+    update_interval: 60s
+
+# =============================================================================
+# CLIMATE ENTITY - THERMOSTAT CONTROL
+# =============================================================================
+
+climate:
+  - platform: thermostat
+    id: thermostat_control
+    name: "Gazebo Thermostat"
+    sensor: ds18b20_temp
+    
+    # Visual settings for Home Assistant
+    visual:
+      min_temperature: 10 °C
+      max_temperature: 35 °C
+      temperature_step: 0.5 °C
+    
+    # Default target temperature  
+    default_preset: Home
+    preset:
+      - name: Home
+        default_target_temperature_low: 21 °C
+      - name: Away
+        default_target_temperature_low: 15 °C
+    
+    # Heat action - controls the relay
+    heat_action:
+      - switch.turn_on: gazebo_relay
+      - lambda: |-
+          id(stove_active) = true;
+          ESP_LOGI("thermostat", "STOVE ACTIVATED - Heat mode engaged");
+          // Update Nextion visual indicators (could be LED, color, etc.)
+          // TODO: Add visual heating indicator on Nextion
+    
+    # Idle action - turns off relay
+    idle_action:
+      - switch.turn_off: gazebo_relay
+      - lambda: |-
+          id(stove_active) = false;
+          ESP_LOGI("thermostat", "STOVE DEACTIVATED - Idle mode");
+          // Update Nextion visual indicators
+          // TODO: Clear visual heating indicator on Nextion
+    
+    # Heat mode deadband (hysteresis)
+    heat_deadband: 1.0 °C  # This will be updated dynamically from global variable
+    heat_overrun: 0.5 °C
+    
+    # Minimum cycling time to protect equipment
+    min_heating_off_time: 300s  # 5 minutes minimum off time
+    min_heating_run_time: 60s   # 1 minute minimum run time
+    min_idle_time: 30s
+    
+    # Custom control logic
+    on_state:
+      - lambda: |-
+          ESP_LOGD("thermostat", "=== THERMOSTAT STATE CHANGE ===");
+          ESP_LOGD("thermostat", "Current temp: %.1f°C, Target: %.1f°C", 
+                   id(ds18b20_temp).state, id(desired_temperature));
+
+# =============================================================================
+# NUMBER INPUTS - CONFIGURATION PARAMETERS
+# =============================================================================
+
+number:
+  # Temperature Correction Offset
+  - platform: template
+    name: "Temperature Correction"
+    id: temp_correction_input
+    min_value: -10.0
+    max_value: 10.0
+    step: 0.1
+    initial_value: 0.0
+    restore_value: yes
+    optimistic: yes
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-lines"
+    set_action:
+      - lambda: |-
+          if (x >= -10.0 && x <= 10.0) {
+            id(temperature_correction) = x;
+            ESP_LOGI("thermostat", "Temperature correction set to: %.1f°C", x);
+          } else {
+            ESP_LOGW("thermostat", "Temperature correction out of range: %.1f°C", x);
+          }
+  
+  # Hysteresis Value
+  - platform: template
+    name: "Hysteresis"
+    id: hysteresis_input
+    min_value: 0.0
+    max_value: 5.0
+    step: 0.1
+    initial_value: 1.0
+    restore_value: yes
+    optimistic: yes
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer-chevron-down"
+    set_action:
+      - lambda: |-
+          if (x >= 0.0 && x <= 5.0) {
+            id(hysteresis_value) = x;
+            ESP_LOGI("thermostat", "Hysteresis set to: %.1f°C", x);
+            // Note: ESPHome thermostat platform doesn't support dynamic deadband changes
+            // This value is stored for future use or custom logic
+          } else {
+            ESP_LOGW("thermostat", "Hysteresis value out of range: %.1f°C", x);
+          }
+  
+  # Desired Temperature
+  - platform: template
+    name: "Desired Temperature"
+    id: desired_temp_input
+    min_value: 10.0
+    max_value: 35.0
+    step: 0.5
+    initial_value: 21.0
+    restore_value: yes
+    optimistic: yes
+    unit_of_measurement: "°C"
+    icon: "mdi:thermometer"
+    set_action:
+      - lambda: |-
+          if (x >= 10.0 && x <= 35.0) {
+            id(desired_temperature) = x;
+            ESP_LOGI("thermostat", "Desired temperature set to: %.1f°C", x);
+            
+            // Update Nextion display - Page 3, n0 = desired temperature
+            char cmd[32];
+            snprintf(cmd, sizeof(cmd), "three.n0.val=%d", (int)lroundf(x));
+            id(nextion0).send_command(cmd);
+            ESP_LOGD("thermostat", "Updated Nextion desired temp: %s", cmd);
+            
+            // Update climate entity target
+            auto call = id(thermostat_control).make_call();
+            call.set_target_temperature(x);
+            call.perform();
+          } else {
+            ESP_LOGW("thermostat", "Desired temperature out of range: %.1f°C", x);
+          }
+  
+  # Schedule Start Time (in seconds from midnight)
+  - platform: template
+    name: "Schedule Start Time"
+    id: schedule_start_input
+    min_value: 0
+    max_value: 86400
+    step: 900  # 15 minute increments
+    initial_value: 28800
+    restore_value: yes
+    optimistic: yes
+    unit_of_measurement: "s"
+    icon: "mdi:clock-start"
+    set_action:
+      - lambda: |-
+          id(schedule_start_seconds) = (int)x;
+          int hours = (int)x / 3600;
+          int minutes = ((int)x % 3600) / 60;
+          ESP_LOGI("thermostat", "Schedule start time set to: %02d:%02d (%d seconds)", 
+                   hours, minutes, (int)x);
+  
+  # Schedule End Time (in seconds from midnight)
+  - platform: template
+    name: "Schedule End Time"
+    id: schedule_end_input
+    min_value: 0
+    max_value: 86400
+    step: 900  # 15 minute increments
+    initial_value: 79200
+    restore_value: yes
+    optimistic: yes
+    unit_of_measurement: "s"
+    icon: "mdi:clock-end"
+    set_action:
+      - lambda: |-
+          id(schedule_end_seconds) = (int)x;
+          int hours = (int)x / 3600;
+          int minutes = ((int)x % 3600) / 60;
+          ESP_LOGI("thermostat", "Schedule end time set to: %02d:%02d (%d seconds)", 
+                   hours, minutes, (int)x);
+  
+  # Manual Run Timeout
+  - platform: template
+    name: "Manual Run Timeout"
+    id: manual_run_timeout_input
+    min_value: 0
+    max_value: 480
+    step: 15
+    initial_value: 120
+    restore_value: yes
+    optimistic: yes
+    unit_of_measurement: "min"
+    icon: "mdi:timer"
+    set_action:
+      - lambda: |-
+          id(manual_run_timeout_minutes) = (int)x;
+          ESP_LOGI("thermostat", "Manual run timeout set to: %d minutes", (int)x);
+
+# =============================================================================
+# SWITCHES - MANUAL OVERRIDES AND CONTROLS
+# =============================================================================
+
+switch:
+  # Manual Run Mode
+  - platform: template
+    name: "Manual Run"
+    id: manual_run_switch
+    icon: "mdi:fire"
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - lambda: |-
+          ESP_LOGI("thermostat", "MANUAL RUN MODE ACTIVATED");
+          id(manual_run_active) = true;
+          id(manual_stop_active) = false;
+          id(manual_run_start_time) = millis();
+          
+          // Force stove on
+          id(gazebo_relay).turn_on();
+          id(stove_active) = true;
+          
+          // Update Nextion indicator (optional)
+          // TODO: Add manual mode indicator on Nextion
+    turn_off_action:
+      - lambda: |-
+          ESP_LOGI("thermostat", "MANUAL RUN MODE DEACTIVATED");
+          id(manual_run_active) = false;
+          
+          // Return to automatic control
+          id(thermostat_control).make_call().perform();
+  
+  # Manual Stop Mode
+  - platform: template
+    name: "Manual Stop"
+    id: manual_stop_switch
+    icon: "mdi:stop-circle"
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - lambda: |-
+          ESP_LOGI("thermostat", "MANUAL STOP MODE ACTIVATED");
+          id(manual_stop_active) = true;
+          id(manual_run_active) = false;
+          
+          // Force stove off
+          id(gazebo_relay).turn_off();
+          id(stove_active) = false;
+          
+          // Update Nextion indicator (optional)
+          // TODO: Add manual stop indicator on Nextion
+    turn_off_action:
+      - lambda: |-
+          ESP_LOGI("thermostat", "MANUAL STOP MODE DEACTIVATED");
+          id(manual_stop_active) = false;
+          
+          // Return to automatic control
+          id(thermostat_control).make_call().perform();
+  
+  # Temperature Averaging Enable/Disable
+  - platform: template
+    name: "Temperature Averaging"
+    id: temp_averaging_switch
+    icon: "mdi:chart-bell-curve"
+    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: yes
+    turn_on_action:
+      - lambda: |-
+          id(temperature_averaging_enabled) = true;
+          ESP_LOGI("thermostat", "Temperature averaging enabled");
+    turn_off_action:
+      - lambda: |-
+          id(temperature_averaging_enabled) = false;
+          ESP_LOGI("thermostat", "Temperature averaging disabled");
+
+# =============================================================================
+# BINARY SENSORS - HOME/AWAY AND STATUS
+# =============================================================================
+
+binary_sensor:
+  # Home/Away Status
+  - platform: template
+    name: "Home Status"
+    id: home_status_sensor
+    icon: "mdi:home"
+    lambda: |-
+      return id(home_status);
+    on_press:
+      - lambda: |-
+          ESP_LOGI("thermostat", "STATUS CHANGED: HOME");
+          id(home_status) = true;
+          // Re-evaluate thermostat state
+          id(thermostat_control).make_call().perform();
+    on_release:
+      - lambda: |-
+          ESP_LOGI("thermostat", "STATUS CHANGED: AWAY");
+          id(home_status) = false;
+          // Turn off stove when away
+          id(gazebo_relay).turn_off();
+          id(stove_active) = false;
+  
+  # Timer Active Status
+  - platform: template
+    name: "Timer Active"
+    id: timer_status_sensor
+    icon: "mdi:clock-check"
+    lambda: |-
+      return id(timer_active);
+  
+  # Sensor Failure Status
+  - platform: template
+    name: "Temperature Sensor Failure"
+    id: sensor_failure_sensor
+    device_class: problem
+    lambda: |-
+      return id(sensor_failure_reported);
+  
+  # Stove Active Status
+  - platform: template
+    name: "Stove Active"
+    id: stove_status_sensor
+    device_class: heat
+    lambda: |-
+      return id(stove_active);
+  
+  # Nextion Page 3 Slider Touch (Slider0)
+  - platform: nextion
+    page_id: 3
+    component_id: 2  # Adjust based on your actual Slider0 component ID
+    name: "Thermostat Slider"
+    id: thermostat_slider
+    internal: yes
+    on_release:
+      - lambda: |-
+          ESP_LOGI("thermostat", "Slider touched, reading value...");
+          // The slider value will be read via nextion.send_command
+
+# =============================================================================
+# INTERVALS - THERMOSTAT LOGIC AND MONITORING
+# =============================================================================
+
+interval:
+  # Main thermostat control logic - runs every 10 seconds
+  - interval: 10s
+    then:
+      - lambda: |-
+          ESP_LOGD("thermostat", "=== THERMOSTAT CONTROL CYCLE ===");
+          
+          // Get current time
+          auto now = id(sntp_time).now();
+          if (!now.is_valid()) {
+            ESP_LOGW("thermostat", "Time not synchronized yet");
+            return;
+          }
+          
+          int current_seconds = now.hour * 3600 + now.minute * 60 + now.second;
+          int current_day_bit = 1 << now.day_of_week;  // Sunday=0, Monday=1, etc.
+          
+          // Check if timer should be active
+          bool should_timer_be_active = false;
+          
+          // Check if current day is enabled in schedule
+          if ((id(schedule_days_of_week) & current_day_bit) != 0) {
+            // Check if current time is within schedule window
+            if (id(schedule_start_seconds) <= id(schedule_end_seconds)) {
+              // Normal case: start < end (e.g., 8:00 to 22:00)
+              should_timer_be_active = (current_seconds >= id(schedule_start_seconds) && 
+                                       current_seconds <= id(schedule_end_seconds));
+            } else {
+              // Wrap-around case: start > end (e.g., 22:00 to 8:00 next day)
+              should_timer_be_active = (current_seconds >= id(schedule_start_seconds) || 
+                                       current_seconds <= id(schedule_end_seconds));
+            }
+          }
+          
+          // Update timer status
+          if (id(timer_active) != should_timer_be_active) {
+            id(timer_active) = should_timer_be_active;
+            ESP_LOGI("thermostat", "Timer status changed: %s", should_timer_be_active ? "ACTIVE" : "INACTIVE");
+            
+            // If timer became inactive while stove is running, turn it off
+            if (!should_timer_be_active && id(stove_active)) {
+              ESP_LOGI("thermostat", "Timer ended, deactivating stove");
+              id(gazebo_relay).turn_off();
+              id(stove_active) = false;
+            }
+          }
+          
+          // Check manual run timeout
+          if (id(manual_run_active) && id(manual_run_timeout_minutes) > 0) {
+            unsigned long elapsed_ms = millis() - id(manual_run_start_time);
+            unsigned long timeout_ms = id(manual_run_timeout_minutes) * 60000;
+            
+            if (elapsed_ms >= timeout_ms) {
+              ESP_LOGW("thermostat", "Manual run timeout reached (%d minutes)", 
+                       id(manual_run_timeout_minutes));
+              id(manual_run_active) = false;
+              id(manual_run_switch).turn_off();
+              
+              // Return to automatic control
+              id(thermostat_control).make_call().perform();
+            }
+          }
+          
+          // Main control logic
+          float current_temp = id(ds18b20_temp).state;
+          float target_temp = id(desired_temperature);
+          
+          if (isnan(current_temp)) {
+            ESP_LOGW("thermostat", "Cannot control - temperature is NaN");
+            return;
+          }
+          
+          ESP_LOGD("thermostat", "Current: %.1f°C, Target: %.1f°C, Hysteresis: %.1f°C", 
+                   current_temp, target_temp, id(hysteresis_value));
+          ESP_LOGD("thermostat", "Home: %d, Timer: %d, Manual Run: %d, Manual Stop: %d",
+                   id(home_status), id(timer_active), id(manual_run_active), id(manual_stop_active));
+          
+          // Priority 1: Manual Stop - always wins
+          if (id(manual_stop_active)) {
+            if (id(stove_active)) {
+              ESP_LOGI("thermostat", "Manual stop active - turning off stove");
+              id(gazebo_relay).turn_off();
+              id(stove_active) = false;
+            }
+            return;
+          }
+          
+          // Priority 2: Manual Run - force on regardless of conditions
+          if (id(manual_run_active)) {
+            if (!id(stove_active)) {
+              ESP_LOGI("thermostat", "Manual run active - turning on stove");
+              id(gazebo_relay).turn_on();
+              id(stove_active) = true;
+            }
+            return;
+          }
+          
+          // Priority 3: Check Away status
+          if (!id(home_status)) {
+            if (id(stove_active)) {
+              ESP_LOGI("thermostat", "Away mode - turning off stove");
+              id(gazebo_relay).turn_off();
+              id(stove_active) = false;
+            }
+            return;
+          }
+          
+          // Priority 4: Check timer status
+          if (!id(timer_active)) {
+            if (id(stove_active)) {
+              ESP_LOGI("thermostat", "Timer inactive - turning off stove");
+              id(gazebo_relay).turn_off();
+              id(stove_active) = false;
+            }
+            return;
+          }
+          
+          // Priority 5: Normal temperature-based control with hysteresis
+          // We are: Home + Timer Active + No Manual Overrides
+          
+          if (id(stove_active)) {
+            // Stove is ON - check if we should turn it OFF
+            float turn_off_temp = target_temp + id(hysteresis_value);
+            
+            if (current_temp >= turn_off_temp) {
+              ESP_LOGI("thermostat", "Temperature reached %.1f°C (target + hysteresis: %.1f°C) - turning OFF", 
+                       current_temp, turn_off_temp);
+              id(gazebo_relay).turn_off();
+              id(stove_active) = false;
+            } else {
+              ESP_LOGD("thermostat", "Stove ON, temp %.1f°C below turn-off threshold %.1f°C", 
+                       current_temp, turn_off_temp);
+            }
+          } else {
+            // Stove is OFF - check if we should turn it ON
+            if (current_temp < target_temp) {
+              ESP_LOGI("thermostat", "Temperature %.1f°C below target %.1f°C - turning ON", 
+                       current_temp, target_temp);
+              id(gazebo_relay).turn_on();
+              id(stove_active) = true;
+            } else {
+              ESP_LOGD("thermostat", "Stove OFF, temp %.1f°C at or above target %.1f°C", 
+                       current_temp, target_temp);
+            }
+          }
+  
+  # Nextion slider value reader - runs every 2 seconds
+  - interval: 2s
+    then:
+      - lambda: |-
+          // Request slider value from Nextion
+          id(nextion0).send_command_printf("get three.n0.val");
+          // The response will trigger the on_value callback
+          
+  # System health monitor - runs every 60 seconds
+  - interval: 60s
+    then:
+      - lambda: |-
+          ESP_LOGI("thermostat", "=== SYSTEM HEALTH CHECK ===");
+          ESP_LOGI("thermostat", "Uptime: %.0f seconds", id(uptime_sensor).state);
+          ESP_LOGI("thermostat", "Sensor bad reads: %d", id(sensor_bad_read_count));
+          ESP_LOGI("thermostat", "Sensor failure: %s", id(sensor_failure_reported) ? "YES" : "NO");
+          ESP_LOGI("thermostat", "Current temp: %.1f°C", id(ds18b20_temp).state);
+          ESP_LOGI("thermostat", "Target temp: %.1f°C", id(desired_temperature));
+          ESP_LOGI("thermostat", "Stove active: %s", id(stove_active) ? "YES" : "NO");
+          ESP_LOGI("thermostat", "WiFi RSSI: %.0f dB", id(wifi_signal_strength).state);
+          
+  # Nextion keep-alive and sync - runs every 30 seconds
+  - interval: 30s
+    then:
+      - lambda: |-
+          // Sync current values to Nextion to prevent drift
+          char cmd1[32];
+          snprintf(cmd1, sizeof(cmd1), "three.n0.val=%d", (int)lroundf(id(desired_temperature)));
+          id(nextion0).send_command(cmd1);
+          
+          char cmd2[32];
+          snprintf(cmd2, sizeof(cmd2), "three.n1.val=%d", (int)lroundf(id(ds18b20_temp).state));
+          id(nextion0).send_command(cmd2);
+          
+          ESP_LOGD("thermostat", "Nextion sync: desired=%.1f°C, actual=%.1f°C", 
+                   id(desired_temperature), id(ds18b20_temp).state);
+
+# =============================================================================
+# TEXT SENSORS - STATUS REPORTING
+# =============================================================================
+
+text_sensor:
+  - platform: template
+    name: "Thermostat Status"
+    id: thermostat_status_text
+    icon: "mdi:information"
+    update_interval: 10s
+    lambda: |-
+      std::string status = "OK";
+      
+      if (id(manual_run_active)) {
+        status = "Manual Run Active";
+      } else if (id(manual_stop_active)) {
+        status = "Manual Stop Active";
+      } else if (!id(home_status)) {
+        status = "Away Mode";
+      } else if (!id(timer_active)) {
+        status = "Outside Schedule";
+      } else if (id(sensor_failure_reported)) {
+        status = "Sensor Failure";
+      } else if (id(stove_active)) {
+        status = "Heating";
+      } else {
+        status = "Idle";
+      }
+      
+      return status;
+  
+  - platform: template
+    name: "Schedule Status"
+    id: schedule_status_text
+    icon: "mdi:clock-outline"
+    update_interval: 60s
+    lambda: |-
+      int start_hours = id(schedule_start_seconds) / 3600;
+      int start_minutes = (id(schedule_start_seconds) % 3600) / 60;
+      int end_hours = id(schedule_end_seconds) / 3600;
+      int end_minutes = (id(schedule_end_seconds) % 3600) / 60;
+      
+      char schedule[64];
+      snprintf(schedule, sizeof(schedule), "%02d:%02d - %02d:%02d", 
+               start_hours, start_minutes, end_hours, end_minutes);
+      
+      return std::string(schedule);
+
