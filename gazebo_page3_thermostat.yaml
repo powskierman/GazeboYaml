@@ -116,19 +116,20 @@ globals:
 # DS18B20 TEMPERATURE SENSOR
 # =============================================================================
 
-dallas:
-  - pin: GPIO13
-    update_interval: 10s
+one_wire:
+  - platform: gpio
+    pin: GPIO13
 
 sensor:
   # =============================================================================
   # ACTUAL TEMPERATURE - DS18B20 with all error handling
   # =============================================================================
-  - platform: dallas
+  - platform: dallas_temp
     id: ds18b20_temp
     name: "Gazebo Actual Temperature"
     address: 0x000000000000  # REPLACE WITH YOUR ACTUAL DS18B20 ADDRESS
     accuracy_decimals: 1
+    update_interval: 10s
     filters:
       # Temperature rate limiting - max 1°C change per update
       - lambda: |-
